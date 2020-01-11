@@ -25,5 +25,8 @@
     <java-symbol type="string" name="popup_camera_dialog_message" />
     <java-symbol type="string" name="popup_camera_dialog_no" />
     <java-symbol type="string" name="popup_camera_dialog_raise" />
+    
+    <!-- Whether the device has a oneplus haptic motor -->
+    <java-symbol type="bool" name="config_hasOnePlusHapticMotor" />
 
 </resources>
