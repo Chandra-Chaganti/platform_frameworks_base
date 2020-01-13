@@ -36,6 +36,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.VibrationEffect;
+import android.os.UserHandle;
+import android.os.Vibrator;
+import android.provider.Settings;
 import android.service.quicksettings.Tile;
 import android.text.format.DateUtils;
 import android.util.ArraySet;
@@ -116,6 +119,7 @@ public abstract class QSTileImpl<TState extends State> implements QSTile, Lifecy
     abstract protected void handleUpdateState(TState state, Object arg);
 
     private final VibratorHelper mVibratorHelper;
+    private Vibrator mVibrator;
 
     /**
      * Declare the category of this tile.
@@ -129,6 +133,7 @@ public abstract class QSTileImpl<TState extends State> implements QSTile, Lifecy
         mHost = host;
         mContext = host.getContext();
         mVibratorHelper = Dependency.get(VibratorHelper.class);
+        mVibrator = (Vibrator) mContext.getSystemService(Context.VIBRATOR_SERVICE);
     }
 
     @NonNull
@@ -193,6 +198,16 @@ public abstract class QSTileImpl<TState extends State> implements QSTile, Lifecy
         mVibratorHelper.vibrate(VibrationEffect.EFFECT_CLICK);
     }
 
+    public void performHapticFeedback(VibrationEffect effect) {
+        boolean hapticEnabled = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.HAPTIC_FEEDBACK_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
+        if (hapticEnabled && mVibrator != null) {
+            if (mVibrator.hasVibrator()) {
+                mVibrator.vibrate(effect);
+            }
+        }
+    }
+
     public void addCallback(Callback callback) {
         mHandler.obtainMessage(H.ADD_CALLBACK, callback).sendToTarget();
     }
@@ -211,6 +226,7 @@ public abstract class QSTileImpl<TState extends State> implements QSTile, Lifecy
                         mStatusBarStateController.getState())));
         mHandler.sendEmptyMessage(H.CLICK);
         vibrateTile();
+        performHapticFeedback(VibrationEffect.get(VibrationEffect.EFFECT_POP));
     }
 
     public void secondaryClick() {
